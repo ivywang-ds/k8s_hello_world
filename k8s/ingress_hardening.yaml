@@ -1,0 +1,90 @@
+# Use TLS for Ingress
+# Implement WAF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-world-ingress-TLS-with-waf
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"         #TLS   
+    nginx.ingress.kubernetes.io/secure-backends: "true"      #TLS 
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"   #WAF
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |       #WAF
+      SecRuleEngine On
+spec:
+  tls:
+  - hosts:
+    - hello-world.local    # can be change to any domain
+    secretName: hello-world-tls-secret  # selfsigned-certificate
+  rules:
+  - host: hello-world.local   # can be change to any domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hello-world
+          
+
+
+---
+# Implement Network Policies
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hello-world-ingress-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: hello-world-ingress-controller
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          role: backend
+
+---
+# Implement Role-Based Access Control
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hello-world-ingress-controller-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hello-world-ingress-controller-role-binding
+subjects:
+- kind: ServiceAccount
+  name: hello-world-ingress-controller-service-account
+  namespace: default
+roleRef:
+  kind: Role
+  name: hello-world-ingress-controller-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Update Ingress Controller Image Regularly
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-ingress
+spec:
+  template:
+    spec:
+      containers:
+      - name: hello-world
+        image: nginx/nginx-ingress:latest
+
+
+
+
+

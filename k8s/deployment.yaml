@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+  labels: 
+    app: hello-world
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: hello-world
+        image: codewithivy/hello_world:0.1.0
+        resources:
+          limits:
+            cpu: 200m
+          requests:
+            cpu: 100m
+        ports:
+        - containerPort: 80
+
+
+    
