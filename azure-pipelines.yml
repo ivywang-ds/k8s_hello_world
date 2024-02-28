@@ -1,17 +1,3 @@
-
-
-trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-- script: echo run k8s_hello_world!
-  displayName: '1st run'
-
-
-
 trigger:
 - main
 
@@ -21,14 +7,23 @@ pool:
 variables:
   versionNumber: '1.0.0'
 
-steps:
-- task: replacetokens@3
-  inputs:
-    rootDirectory: '$(System.DefaultWorkingDirectory)'
-    targetFiles: 'combined_config.yaml'
-    encoding: 'auto'
-    writeBOM: true
-    actionOnMissing: 'warn'
-    keepToken: false
-    tokenPrefix: '#{'
-    tokenSuffix: '}#'
+jobs:
+- job: RunHelloWorld
+  displayName: 'Run Hello World'
+  steps:
+  - script: echo run k8s_hello_world!
+    displayName: '1st run'
+
+- job: ProcessYAML
+  displayName: 'Process YAML File'
+  steps:
+  - task: 
+    inputs:
+      rootDirectory: '$(System.DefaultWorkingDirectory)'
+      targetFiles: 'combined_config.yaml'
+      encoding: 'auto'
+      writeBOM: true
+      actionOnMissing: 'warn'
+      keepToken: false
+      tokenPrefix: '#{'
+      tokenSuffix: '}#'
